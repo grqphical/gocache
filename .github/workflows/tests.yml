@@ -22,9 +22,6 @@ jobs:
       - name: Go Tidy
         run: go mod tidy && git diff --exit-code
 
-      - name: Go Tidy
-        run: go mod tidy && git diff --exit-code
-
       - name: Go Mod Verify
         run: go mod verify
 

@@ -1,5 +1,7 @@
 # gocache
 
+[![Go Tests](https://github.com/grqphical/gocache/actions/workflows/tests.yml/badge.svg)](https://github.com/grqphical/gocache/actions/workflows/tests.yml)
+
 A simple, threadsafe cache that can be used within your Golang apps as a replacement for external caches.
 
 ## Installation

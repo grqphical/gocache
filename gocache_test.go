@@ -24,15 +24,24 @@ func TestInitCache(t *testing.T) {
 func TestStore(t *testing.T) {
 	cache := StartCache()
 
-	cache.send <- message.Message{
-		Action: message.ActionStore,
-		Args: map[string]any{
-			"key":   "foo",
-			"value": "bar",
-		},
-	}
+	err := cache.Store("foo", "bar")
 
-	r := <-cache.recv
+	assert.Equal(t, nil, err)
+}
 
-	assert.Equal(t, true, r.Ok)
+func TestGetString(t *testing.T) {
+	cache := StartCache()
+
+	err := cache.Store("foo", "bar")
+
+	assert.Equal(t, nil, err)
+
+	value, err := cache.GetString("foo")
+	assert.NoError(t, err)
+
+	assert.Equal(t, "bar", value)
+
+	// Test key that doesn't exist
+	_, err = cache.GetString("baz")
+	assert.Error(t, err)
 }

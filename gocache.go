@@ -1,6 +1,8 @@
 package gocache
 
 import (
+	"fmt"
+
 	"gocache/message"
 )
 
@@ -17,10 +19,23 @@ type CacheClient struct {
 
 func RunCache(server CacheServer) {
 	for {
-		<-server.recv
-		server.send <- message.Response{
-			Ok:    true,
-			Value: "OK",
+		msg := <-server.recv
+
+		switch msg.Action {
+		case message.ActionStatus:
+			server.send <- message.Response{
+				Ok:    true,
+				Value: "OK",
+			}
+		case message.ActionStore:
+			server.data[msg.Args["key"].(string)] = msg.Args["value"]
+
+			fmt.Printf("%+v\n", server.data)
+
+			server.send <- message.Response{
+				Ok:    true,
+				Value: nil,
+			}
 		}
 	}
 }

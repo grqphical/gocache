@@ -21,6 +21,16 @@ func (c *CacheClient) Store(key string, value any) error {
 	return HandleCacheError(<-c.recv)
 }
 
+func (c *CacheClient) ListKeys() []string {
+	c.send <- message.Message{
+		Action: message.ActionList,
+		Args:   nil,
+	}
+
+	resp := <-c.recv
+	return resp.Value.([]string)
+}
+
 func (c *CacheClient) Delete(keys ...string) error {
 	for _, key := range keys {
 		c.send <- message.Message{

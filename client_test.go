@@ -42,6 +42,14 @@ func TestDelete(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
+func TestList(t *testing.T) {
+	cache := StartCache()
+	_ = cache.Store("foo", "bar")
+
+	keys := cache.ListKeys()
+	assert.Equal(t, []string{"foo"}, keys)
+}
+
 func TestGet(t *testing.T) {
 	cache := StartCache()
 	err := cache.Store("foo", "bar")

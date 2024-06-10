@@ -1,3 +1,5 @@
+# ⚠️ This Version is no longer maintained.
+
 # gocache
 
 [![Go Tests](https://github.com/grqphical/gocache/actions/workflows/tests.yml/badge.svg)](https://github.com/grqphical/gocache/actions/workflows/tests.yml)

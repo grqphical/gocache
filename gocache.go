@@ -34,6 +34,23 @@ func (c *CacheClient) Store(key string, value any) error {
 	return HandleCacheError(<-c.recv)
 }
 
+func (c *CacheClient) Get(key string) (any, error) {
+	c.send <- message.Message{
+		Action: message.ActionGet,
+		Args: map[string]any{
+			"key": key,
+		},
+	}
+
+	resp := <-c.recv
+	err := HandleCacheError(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Value, nil
+}
+
 func (c *CacheClient) GetString(key string) (string, error) {
 	c.send <- message.Message{
 		Action: message.ActionGet,
@@ -51,6 +68,72 @@ func (c *CacheClient) GetString(key string) (string, error) {
 	value, ok := resp.Value.(string)
 	if !ok {
 		return "", ErrInvalidType
+	}
+
+	return value, nil
+}
+
+func (c *CacheClient) GetInt(key string) (int, error) {
+	c.send <- message.Message{
+		Action: message.ActionGet,
+		Args: map[string]any{
+			"key": key,
+		},
+	}
+
+	resp := <-c.recv
+	err := HandleCacheError(resp)
+	if err != nil {
+		return 0, err
+	}
+
+	value, ok := resp.Value.(int)
+	if !ok {
+		return 0, ErrInvalidType
+	}
+
+	return value, nil
+}
+
+func (c *CacheClient) GetFloat(key string) (float32, error) {
+	c.send <- message.Message{
+		Action: message.ActionGet,
+		Args: map[string]any{
+			"key": key,
+		},
+	}
+
+	resp := <-c.recv
+	err := HandleCacheError(resp)
+	if err != nil {
+		return 0.0, err
+	}
+
+	value, ok := resp.Value.(float32)
+	if !ok {
+		return 0.0, ErrInvalidType
+	}
+
+	return value, nil
+}
+
+func (c *CacheClient) GetBytes(key string) ([]byte, error) {
+	c.send <- message.Message{
+		Action: message.ActionGet,
+		Args: map[string]any{
+			"key": key,
+		},
+	}
+
+	resp := <-c.recv
+	err := HandleCacheError(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	value, ok := resp.Value.([]byte)
+	if !ok {
+		return nil, ErrInvalidType
 	}
 
 	return value, nil

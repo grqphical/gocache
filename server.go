@@ -1,15 +1,24 @@
 package gocache
 
-import "gocache/message"
+import (
+	"encoding/gob"
+	"os"
+
+	"gocache/message"
+)
 
 type Server interface {
 	HandleMessages()
+	SaveToDisk() error
+	LoadFromDisk() error
 }
 
 type CacheServer struct {
-	send chan message.Response
-	recv chan message.Message
-	data map[string]any
+	send            chan message.Response
+	recv            chan message.Message
+	Data            map[string]any
+	PersistanceFile string
+	PersistOnAction bool
 }
 
 func (server CacheServer) HandleMessages() {
@@ -22,14 +31,14 @@ func (server CacheServer) HandleMessages() {
 			Value: "OK",
 		}
 	case message.ActionStore:
-		server.data[msg.Args["key"].(string)] = msg.Args["value"]
+		server.Data[msg.Args["key"].(string)] = msg.Args["value"]
 
 		server.send <- message.Response{
 			Ok:    true,
 			Value: nil,
 		}
 	case message.ActionGet:
-		value, ok := server.data[msg.Args["key"].(string)]
+		value, ok := server.Data[msg.Args["key"].(string)]
 		if !ok {
 			server.send <- message.Response{
 				Ok:    false,
@@ -44,7 +53,7 @@ func (server CacheServer) HandleMessages() {
 	case message.ActionDelete:
 		key := msg.Args["key"].(string)
 
-		delete(server.data, key)
+		delete(server.Data, key)
 
 		server.send <- message.Response{
 			Ok:    true,
@@ -52,7 +61,7 @@ func (server CacheServer) HandleMessages() {
 		}
 	case message.ActionList:
 		keys := make([]string, 0)
-		for key := range server.data {
+		for key := range server.Data {
 			keys = append(keys, key)
 		}
 		server.send <- message.Response{
@@ -62,20 +71,44 @@ func (server CacheServer) HandleMessages() {
 	}
 }
 
+func (s CacheServer) SaveToDisk() error {
+	file, err := os.OpenFile(s.PersistanceFile, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	return gob.NewEncoder(file).Encode(s)
+}
+
+func (s CacheServer) LoadFromDisk() error {
+	file, err := os.OpenFile(s.PersistanceFile, os.O_RDONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	var loadedServer CacheServer
+
+	err = gob.NewDecoder(file).Decode(&loadedServer)
+
+	s.Data = loadedServer.Data
+	return err
+}
+
 func runCacheServer(server Server) {
 	for {
 		server.HandleMessages()
 	}
 }
 
-func StartCache() CacheClient {
+func StartCache(config GoCacheConfig) CacheClient {
 	send := make(chan message.Message, 8)
 	recv := make(chan message.Response, 8)
 
 	server := CacheServer{
-		send: recv,
-		recv: send,
-		data: make(map[string]any),
+		send:            recv,
+		recv:            send,
+		Data:            make(map[string]any),
+		PersistanceFile: config.PersistanceFile,
+		PersistOnAction: config.PersistOnModification,
 	}
 
 	client := CacheClient{

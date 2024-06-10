@@ -9,7 +9,7 @@ import (
 )
 
 func TestInitCache(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 
 	cache.send <- message.Message{
 		Action: message.ActionStatus,
@@ -22,7 +22,7 @@ func TestInitCache(t *testing.T) {
 }
 
 func TestStore(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 
 	err := cache.Store("foo", "bar")
 
@@ -30,7 +30,7 @@ func TestStore(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 	err := cache.Store("foo", "bar")
 	assert.Equal(t, nil, err)
 
@@ -43,7 +43,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 	_ = cache.Store("foo", "bar")
 
 	keys := cache.ListKeys()
@@ -51,7 +51,7 @@ func TestList(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 	err := cache.Store("foo", "bar")
 	assert.Equal(t, nil, err)
 
@@ -65,7 +65,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestGetString(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 	err := cache.Store("foo", "bar")
 	assert.Equal(t, nil, err)
 
@@ -79,7 +79,7 @@ func TestGetString(t *testing.T) {
 }
 
 func TestGetInt(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 	err := cache.Store("foo", 42)
 	assert.Equal(t, nil, err)
 
@@ -93,7 +93,7 @@ func TestGetInt(t *testing.T) {
 }
 
 func TestGetFloat(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 	err := cache.Store("foo", 3.14)
 	assert.Equal(t, nil, err)
 
@@ -107,7 +107,7 @@ func TestGetFloat(t *testing.T) {
 }
 
 func TestGetBytes(t *testing.T) {
-	cache := StartCache()
+	cache := StartCache(GoCacheConfig{})
 	err := cache.Store("foo", []byte{0x01, 0x02, 0x03})
 	assert.Equal(t, nil, err)
 

@@ -6,6 +6,7 @@ const (
 	ActionGet           = "GET"
 	ActionList          = "LIST"
 	ActionDelete        = "DELETE"
+	ActionSave          = "SAVE"
 )
 
 type Message struct {

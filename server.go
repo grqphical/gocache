@@ -18,7 +18,6 @@ type CacheServer struct {
 	recv            chan message.Message
 	Data            map[string]any
 	PersistanceFile string
-	PersistOnAction bool
 }
 
 func (server CacheServer) HandleMessages() {
@@ -68,10 +67,28 @@ func (server CacheServer) HandleMessages() {
 			Ok:    true,
 			Value: keys,
 		}
+	case message.ActionSave:
+		err := server.SaveToDisk()
+		if err != nil {
+			server.send <- message.Response{
+				Ok:    false,
+				Value: err,
+			}
+		}
+
+		server.send <- message.Response{
+			Ok:    true,
+			Value: nil,
+		}
+
 	}
 }
 
 func (s CacheServer) SaveToDisk() error {
+	if s.PersistanceFile == "" {
+		return ErrNoPersistanceFileSet
+	}
+
 	file, err := os.OpenFile(s.PersistanceFile, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
@@ -80,6 +97,10 @@ func (s CacheServer) SaveToDisk() error {
 }
 
 func (s CacheServer) LoadFromDisk() error {
+	if s.PersistanceFile == "" {
+		return nil
+	}
+
 	file, err := os.OpenFile(s.PersistanceFile, os.O_RDONLY, 0644)
 	if err != nil {
 		return err
@@ -108,8 +129,9 @@ func StartCache(config GoCacheConfig) CacheClient {
 		recv:            send,
 		Data:            make(map[string]any),
 		PersistanceFile: config.PersistanceFile,
-		PersistOnAction: config.PersistOnModification,
 	}
+
+	server.LoadFromDisk()
 
 	client := CacheClient{
 		send,
